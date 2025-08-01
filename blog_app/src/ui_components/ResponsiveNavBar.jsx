@@ -15,7 +15,7 @@ const ResponsiveNavBar = ({isAuthenticated, username, logout}) => {
             <>
               <li>
                 <NavLink
-                  to="/signin"
+                  to="/login"
                   className={({ isActive }) => (isActive ? "active" : "")}
                 >
                   Login

@@ -12,28 +12,58 @@ import {
   SelectLabel,
 } from "@/components/ui/select";
 import InputError from "@/ui_components/InputError";
-// import { useMutation, useQueryClient } from "@tanstack/react-query";
-// import { createBlog, updateBlog } from "@/services/apiBlog";
-// import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 import SmallSpinner from "@/ui_components/SmallSpinner";
 import SmallSpinnerText from "@/ui_components/SmallSpinnerText";
 import LoginPage from "./LoginPage";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
+import { createPost, updateBlog } from "../store/CRUD"; // ✅ Use your CRUD operations
 
-const CreatePostPage = ({ blog, isAuthenticated }) => {
-  const { register, handleSubmit, formState, setValue } = useForm({
+const CreatePostPage = ({ blog, isAuthenticated ,toggleModal}) => {
+  const { register, handleSubmit, formState, setValue, watch } = useForm({
     defaultValues: blog ? blog : {},
   });
   const { errors } = formState;
   const navigate = useNavigate();
+  const dispatch = useDispatch(); // ✅ Added dispatch
+  const { loading, error } = useSelector((state) => state.crud); // ✅ Get from Redux store
+
+  // ✅ Add onSubmit function
+  const onSubmit = async (data) => {
+    try {
+      if (blog) {
 
 
-  const blogID = blog?.id;
+        // Update existing blog
 
-  const { loading, error } = useSelector((state) => state.crud);
- const dispatch=useDispatch()
-  
+
+       const result= await dispatch(updateBlog({ id: blog.id, postData: data }));
+    if(updateBlog.fulfilled.match(result)) {
+        console.log("Blog updated successfully:", result);
+        toggleModal(); // Close the modal after updating
+         navigate(`/post/${blog.id}`);
+        // Optionally, you can show a success message or redirect
+      } else if (updateBlog.rejected.match(result)) {
+        console.error("Failed to update blog:", result.payload);
+      }
+
+        
+       
+
+
+      } else {
+        // Create new blog
+        await dispatch(createPost(data));
+        navigate("/");
+      }
+    } catch (error) {
+      console.error("Error saving post:", error);
+    }
+  };
+  const watchedValues = watch();
+  console.log("🔍 Form values:", watchedValues);
+  // const blogID = blog?.id;
+
   if (isAuthenticated === false) {
     return <LoginPage />;
   }
@@ -41,10 +71,10 @@ const CreatePostPage = ({ blog, isAuthenticated }) => {
   return (
     <form
       onSubmit={handleSubmit(onSubmit)}
-      className={`${
-        blog && "h-[90%] overflow-auto"
-      }  md:px-16 px-8 py-6 flex flex-col mx-auto my-9 items-center gap-6 w-fit rounded-lg bg-[#FFFFFF] shadow-xl dark:text-white dark:bg-[#141624]`}
+      className={`${blog && "h-[90%] overflow-auto"
+        }  md:px-16 px-8 py-6 flex flex-col mx-auto my-9 items-center gap-6 w-fit rounded-lg bg-[#FFFFFF] shadow-xl dark:text-white dark:bg-[#141624]`}
     >
+
       <div className="flex flex-col gap-2 justify-center items-center mb-2">
         <h3 className="font-semibold text-2xl max-sm:text-xl">
           {blog ? "Update Post" : "Create Post"}
@@ -129,7 +159,7 @@ const CreatePostPage = ({ blog, isAuthenticated }) => {
         <Label htmlFor="featured_image">Featured Image</Label>
         <Input
           type="file"
-          id="picture"
+          id="featured_image"
           {...register("featured_image", {
             required: blog ? false : "Blog's featured image is required",
           })}
@@ -142,35 +172,20 @@ const CreatePostPage = ({ blog, isAuthenticated }) => {
       </div>
 
       <div className="w-full flex items-center justify-center flex-col my-4">
-        {blog ? (
-          <button
-            disabled={updateMutation.isPending}
-            className="bg-[#4B6BFB] text-white w-full py-3 px-2 rounded-md flex items-center justify-center gap-2"
-          >
-            {updateMutation.isPending ? (
-              <>
-                {" "}
-                <SmallSpinner /> <SmallSpinnerText text="Updating post..." />{" "}
-              </>
-            ) : (
-              <SmallSpinnerText text="Update post" />
-            )}
-          </button>
-        ) : (
-          <button
-            disabled={mutation.isPending}
-            className="bg-[#4B6BFB] text-white w-full py-3 px-2 rounded-md flex items-center justify-center gap-2"
-          >
-            {mutation.isPending ? (
-              <>
-                {" "}
-                <SmallSpinner /> <SmallSpinnerText text="Creating post..." />{" "}
-              </>
-            ) : (
-              <SmallSpinnerText text="Create post" />
-            )}
-          </button>
-        )}
+        <button
+          disabled={loading}
+          type='submit'
+          className="bg-[#4B6BFB] text-white w-full py-3 px-2 rounded-md flex items-center justify-center gap-2"
+        >
+          {loading ? (
+            <>
+              <SmallSpinner />
+              <SmallSpinnerText text={blog ? "Updating post..." : "Creating post..."} />
+            </>
+          ) : (
+            <SmallSpinnerText text={blog ? "Update post" : "Create post"} />
+          )}
+        </button>
       </div>
     </form>
   );

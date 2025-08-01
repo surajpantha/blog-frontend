@@ -11,12 +11,32 @@ import { useEffect, useState } from "react";
 // import { getUsername } from "./services/apiBlog";
 // import { useQuery } from "@tanstack/react-query";
 import NotFoundPage from "./pages/NotFoundPage";
-
+import { loginUser, setUserAuthenticated } from "./store/authSlice";
+import { useDispatch, useSelector } from "react-redux";
+import { fetchUser } from "./store/authSlice";
 const App = () => {
   const [username, setUsername] = useState(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const dispatch =useDispatch()
+  
+useEffect(() => {
+    const accessToken = localStorage.getItem("accessToken");
+    if (accessToken) {
+      dispatch(fetchUser())
+        .unwrap()
+        .then((data) => {
+          setUsername(data.username);
+          setIsAuthenticated(true);
+        })
+        .catch(() => {
+          setUsername(null);
+          setIsAuthenticated(false);
+          localStorage.removeItem("accessToken");
+        });
+    }
+  }, []);
 
-
+  
 
 
 
@@ -31,26 +51,22 @@ const App = () => {
       />
       }>
         <Route index element={<HomePage />} />
-        <Route path="login" element={<LoginPage setIsAuthenticated={setIsAuthenticated}
+        <Route path="login" element={<LoginPage 
+         
+          setIsAuthenticated={setIsAuthenticated}
+       
           setUsername={setUsername} />} />
         <Route path="signup" element={<SignupPage />} />
-        <Route
-          path="profile"
-          element={
-            <ProtectedRoute>
-              <ProfilePage />
-            </ProtectedRoute>
-          }
-        />
+        <Route path="profile/:username" element={<ProfilePage authUsername={username} />} />
         <Route
           path="/create"
           element={
             <ProtectedRoute>
-              <CreatePostPage isAuthenticated={isAuthenticated}/>
+              <CreatePostPage isAuthenticated={isAuthenticated} setIsAuthenticated={setIsAuthenticated} />
             </ProtectedRoute>
           }
         />
-        <Route path="post/:id" element={<DetailPage />} />
+        <Route path="post/:id" element={<DetailPage isAuthenticated={isAuthenticated} username={username} />} />
 
         {/* 404 Page */}
         <Route path="*" element={<NotFoundPage />} />

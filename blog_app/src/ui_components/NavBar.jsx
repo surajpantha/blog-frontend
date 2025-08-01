@@ -64,7 +64,7 @@ const NavBar = ({
 
           <li className="font-semibold">
             <NavLink
-              to="/create"
+              to="create"
               className={({ isActive }) => (isActive ? "active" : "")}
             >
               Create Post

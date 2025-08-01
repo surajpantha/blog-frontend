@@ -1,7 +1,7 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import { jwtDecode } from "jwt-decode";
 
-const BASE_URL = "https://drf-api-blog.onrender.com"
+const BASE_URL = String(import.meta.env.VITE_BASE_URL)
 
 const isTokenExpired = (token) => {
     if (!token) return true;
@@ -162,7 +162,7 @@ export const fetchUserByUsername = createAsyncThunk(
     "auth/fetchUserByUsername",
     async (username, thunkAPI) => {
         try {
-            const res = await fetch(`${BASE_URL}/user/${username}`, {
+            const res = await fetch(`${BASE_URL}/get_userinfo/${username}`, {
                 method: 'GET',
                 headers: {
                     'Content-type': 'application/json'
@@ -205,7 +205,7 @@ export const updateUserProfile = createAsyncThunk(
             }
 
 
-            const res = await fetch(`${BASE_URL}update_userprofile/`, {
+            const res = await fetch(`${BASE_URL}/update_userprofile/`, {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${token}`,
@@ -250,6 +250,26 @@ export const updateUserProfile = createAsyncThunk(
         }
     }
 )
+
+export const fetchUser = createAsyncThunk(
+    "auth/fetchUser",
+    async (_, thunkAPI) => {
+        try {
+            const access = localStorage.getItem("accessToken");
+            const res = await fetch("https://drf-api-blog.onrender.com/get_username", {
+                headers: {
+                    Authorization: `Bearer ${access}`,
+                },
+            });
+
+            if (!res.ok) throw new Error("Failed to fetch user");
+            const data = await res.json();
+            return data;
+        } catch (err) {
+            return thunkAPI.rejectWithValue(err.message);
+        }
+    }
+);
 //SLICES
 
 const authSlice = createSlice({
@@ -387,9 +407,18 @@ const authSlice = createSlice({
             .addCase(updateUserProfile.rejected, (state, action) => {
                 state.loading = false;
                 state.error = action.payload;
+            })
+            //fetchuser
+            .addCase(fetchUser.fulfilled, (state, action) => {
+                state.user = action.payload;
+                state.isAuthenticated = true;
+            })
+            .addCase(fetchUser.rejected, (state) => {
+                state.user = null;
+                state.isAuthenticated = false;
             });
     },
 });
-export const { cleanError, setAuthFromStorage } = authSlice.actions;
+export const { cleanError, setAuthFromStorage, setUserAuthenticated } = authSlice.actions;
 
 export default authSlice.reducer;

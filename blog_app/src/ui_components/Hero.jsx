@@ -6,7 +6,8 @@ import { FaYoutube } from "react-icons/fa";
 import { HiPencilAlt } from "react-icons/hi";
 
 // 🔧 Add BASE_URL - adjust this to match your setup
-const BASE_URL = "https://drf-api-blog.onrender.com";
+const BASE_URL = String(import.meta.env.VITE_BASE_URL)
+
 
 const Hero = ({ userInfo, authUsername, toggleModal, isOwnProfile }) => {
   // 🔧 Function to get profile image URL

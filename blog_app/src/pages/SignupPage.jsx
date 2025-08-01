@@ -282,7 +282,7 @@ const SignupPage = ({ userInfo, updateForm, toggleModal, onSubmit, customTitle }
         {/* Sign in link for signup mode */}
         {!updateForm && (
           <p className="text-[14px] mt-2">
-            Already have an account? <Link to="/signin" className="text-[#4B6BFB] hover:underline">Sign In</Link>
+            Already have an account? <Link to="/login" className="text-[#4B6BFB] hover:underline">Sign In</Link>
           </p>
         )}
       </div>

@@ -1,117 +1,125 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 
-const BASE_URL = "http://127.0.0.1:8000/"
+const BASE_URL = String(import.meta.env.VITE_BASE_URL)
+
 
 // thunks
-const createPost = createAsyncThunk(
-    "crud/createPost",
-    async (data, thunkAPI) => {
-        try {
-            const formData = new FormData();
-            formData.append('title', data.title)
-            formData.append('content', data.content)
-            formData.append('is_draft', data.is_draft)
-            formData.append('category', data.category)
-            if (data.featured_image) {
-                formData.append("profile_picture", data.featured_image[0]);
-            }
-            const res = await fetch(`${BASE_URL}/create_blog/`, {
-                method: 'POST',
-                body: formData
-            });
-            if (!res.ok) {
-                const errorData = await res.json()
-                throw new Error(errorData?.detail || "couldn't create your post")
-            }
-            const data = await res.json()
-            return data;
-        } catch (error) {
-            return thunkAPI.rejectWithValue(error.message);
+export const createPost = createAsyncThunk(
+  "crud/createPost",
+  async (postData, thunkAPI) => {
+    const accessToken = localStorage.getItem('accessToken')
+    try {
+      const formData = new FormData();
+      formData.append('title', postData.title)
+      formData.append('content', postData.content)
+      formData.append('is_draft', postData.is_draft|| false)
+      formData.append('category', postData.category)
+      if (postData.featured_image && postData.featured_image.length > 0) {
 
-        }
+        formData.append("featured_image", postData.featured_image[0]);
+
+      }
+      const res = await fetch(`${BASE_URL}/create_blog/`, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${accessToken}`
+        },
+        body: formData
+      });
+      if (!res.ok) {
+        const errorData = await res.json()
+        throw new Error(errorData?.detail || "couldn't create your post")
+      }
+      const data = await res.json()
+      return data;
+    } catch (error) {
+      return thunkAPI.rejectWithValue(error.message);
+
     }
+  }
 )
 
 
 export const getBlogList = createAsyncThunk(
-    'crud/getBlogList',
-    async (thunkAPI) => {
-        try {
-            const res = await fetch(`${BASE_URL}/blog_list/`, {
-                method: 'GET'
-            });
+  'crud/getBlogList',
+  async (thunkAPI) => {
+    try {
+      const res = await fetch(`${BASE_URL}/blog_list/`, {
+        method: 'GET'
+      });
 
-            if (!res.ok) {
-                const errorData = await res.json()
-                throw new Error(errorData?.detail || "couldn't fetch the blogs");
-            }
+      if (!res.ok) {
+        const errorData = await res.json()
+        throw new Error(errorData?.detail || "couldn't fetch the blogs");
+      }
 
-            const data = await res.json()
-            return data;
-        } catch (error) {
-            return thunkAPI.rejectWithValue(error.message);
-        }
+      const data = await res.json()
+      return data;
+    } catch (error) {
+      return thunkAPI.rejectWithValue(error.message);
     }
+  }
 )
 
 
 
 
 export const updateBlog = createAsyncThunk(
-    "crud/updateBlog",
-    async ({ id, data }, thunkAPI) => {
-        try {
-            const formData = new FormData();
-            formData.append('title', data.title)
-            formData.append('content', data.content)
-            formData.append('is_draft', data.is_draft)
-            formData.append('category', data.category)
-            if (data.featured_image) {
-                formData.append("profile_picture", data.featured_image[0]);
-            }
-            const token = localStorage.getItem("accessToken")
-            const res = await fetch(`${BASE_URL}/update_blog/${id}`, {
-                method: "PATCH",
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                },
-                body: formData,
-            });
-            if (!res.ok) {
-                throw new Error("failed to update blog")
-            }
-            const data = await res.json();
-            return data;
-        } catch (error) {
-            return thunkAPI.rejectWithValue(error.message);
+  "crud/updateBlog",
+  async ({ id ,postData}, thunkAPI) => {
+    try {
+      const formData = new FormData();
+      formData.append('title', postData.title)
+      formData.append('content', postData.content)
+      formData.append('is_draft', postData.is_draft || false)
+      formData.append('category', postData.category)
+      // console.log("postData:", postData);
+      if (postData.featured_image) {
+        formData.append("featured_image", postData.featured_image[0]);
+      }
+      const token = localStorage.getItem("accessToken")
+      const res = await fetch(`${BASE_URL}/update_blog/${id}/`, {
+        method: "PATCH",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        body: formData,
+      });
+      if (!res.ok) {
+        throw new Error("failed to update blog")
+      }
+      const data = await res.json();
+      return data;
+    } catch (error) {
+      return thunkAPI.rejectWithValue(error.message);
 
-        }
     }
+  }
 )
 
 
-export const deleteBlog= createAsyncThunk(
-    "crud/deleteBlog",
-    async(id,thunkAPI)=>{
-        try {
-            const token=localStorage.getItem("accessToken")
-             const res=await fetch(`${BASE_URL}/delete_blog/${id}/`,{
+export const deleteBlog = createAsyncThunk(
+  "crud/deleteBlog",
+  async (id, thunkAPI) => {
+    try {
+      const token = localStorage.getItem("accessToken")
+      const res = await fetch(`${BASE_URL}/delete_blog/${id}/`, {
 
-                method:"DELETE",
-                headers:{
-                    Authorization:`Bearer ${token}`
-                }
-            });
-            if (!res.ok){
-                throw new Error("couldn't delethe the blog")
-            }
-            const data=await res.json()
-            return data;
-        } catch (error) {
-            return thunkAPI.rejectWithValue(error.message)
-            
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`
         }
+      });
+      if (!res.ok) {
+        throw new Error("couldn't delethe the blog")
+      }
+      const data = await res.json()
+      return data;
+    } catch (error) {
+      return thunkAPI.rejectWithValue(error.message)
+
     }
+  }
 )
 
 
