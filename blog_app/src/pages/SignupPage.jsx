@@ -21,14 +21,14 @@ const SignupPage = ({ userInfo, updateForm, toggleModal, onSubmit, customTitle }
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  // 🔧 Fixed submit handler
+
   const handleFormSubmit = async (data) => {
     try {
       if (updateForm && onSubmit) {
-        // Profile update mode - use custom onSubmit
+      
         await onSubmit(data);
       } else {
-        // Registration mode - use registerUser
+       
         const resultAction = await dispatch(registerUser(data));
         if (registerUser.fulfilled.match(resultAction)) {
           console.log("User created successfully");
@@ -75,7 +75,7 @@ const SignupPage = ({ userInfo, updateForm, toggleModal, onSubmit, customTitle }
           type="text"
           id="username"
           placeholder="Enter username"
-          disabled={updateForm} // 🔧 Disable username editing in update mode
+          disabled={updateForm} // Disable username editing in update mode
           {...register("username", {
             required: !updateForm ? "Username is required" : false,
             minLength: {
