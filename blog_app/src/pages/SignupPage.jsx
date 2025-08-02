@@ -4,7 +4,7 @@ import { Textarea } from "@/components/ui/textarea";
 import InputError from "@/ui_components/InputError";
 
 import { useForm } from "react-hook-form";
-import { Link } from "react-router-dom";
+import { Link ,useNavigate} from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { registerUser } from "../store/authSlice";
 
@@ -19,6 +19,7 @@ const SignupPage = ({ userInfo, updateForm, toggleModal, onSubmit, customTitle }
   const { loading, error } = useSelector((state) => state.auth);
   const password = watch("password");
   const dispatch = useDispatch();
+  const navigate = useNavigate();
 
   // 🔧 Fixed submit handler
   const handleFormSubmit = async (data) => {
@@ -32,6 +33,7 @@ const SignupPage = ({ userInfo, updateForm, toggleModal, onSubmit, customTitle }
         if (registerUser.fulfilled.match(resultAction)) {
           console.log("User created successfully");
           reset();
+          navigate('/login')
         } else {
           console.error("Registration error", resultAction.payload);
         }
